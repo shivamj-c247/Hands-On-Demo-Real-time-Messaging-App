@@ -4,36 +4,93 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="/socket.io/socket.io.js"></script>
     <title>Chat APP</title>
   </head>
   <body>
-    <h1>Chatting</h1>
+    <h1>Socket.IO Rooms Demo</h1>
+    <div>
+      <input id="roomInput" type="text" placeholder="Enter room name" required />
+      <button id="joinRoomBtn">Join Room</button>
+      <button id="leaveRoomBtn">Leave Room</button>
+      <button id="disconnect">Disconnect</button>
+      <button id="connectManually">Connect Manually</button>
 
-    <input type="text" id="message" placeholder="Enter Message" />
-    <button id="sendBtn">Send</button>
+    </div>
+    <div>
+      <input id="messageInput" type="text" placeholder="Enter message" required />
+      <button id="sendMessageBtn">Send Message</button>
+    </div>
+    <ul id="messages"></ul>
 
-    <div id="messages"></div>
-
-    <script src="/socket.io/socket.io.js"></script>
     <script>
       const socket = io();
-      const sendBtn = document.getElementById("sendBtn");
-      const messageInput = document.getElementById("message");
-      const allMessages = document.getElementById("messages");
 
-      socket.on("message", (message) => {
-        const p = document.createElement("p");
-        p.innerText = message;
-        allMessages.appendChild(p);
+      const roomInput = document.getElementById("roomInput");
+      const joinRoomBtn = document.getElementById("joinRoomBtn");
+      const leaveRoomBtn = document.getElementById("leaveRoomBtn");
+      const messageInput = document.getElementById("messageInput");
+      const sendMessageBtn = document.getElementById("sendMessageBtn");
+      const disconnectBtn = document.getElementById("disconnect");
+      const connectManually = document.getElementById("connectManually");
+      const messages = document.getElementById("messages");
+
+      let currentRoom = null;
+
+      // Join a room
+      joinRoomBtn.addEventListener("click", () => {
+        const roomName = roomInput.value;
+        if (roomName) {
+          currentRoom = roomName;
+          socket.emit("joinRoom", roomName);
+          addMessage(`Joined room: ${roomName}`);
+        }
       });
 
-      sendBtn.addEventListener("click", (e) => {
+      // Leave a room
+      leaveRoomBtn.addEventListener("click", () => {
+        if (currentRoom) {
+          socket.emit("leaveRoom", currentRoom);
+          addMessage(`Left room: ${currentRoom}`);
+          currentRoom = null;
+        }
+      });
+
+      // Send a message to the current room
+      sendMessageBtn.addEventListener("click", () => {
         const message = messageInput.value;
-        console.log(message);
-        socket.emit("user-message", message, (response) => {
-          console.log('ackknowledgement',response);
-        });
+        if (currentRoom && message) {
+          socket.emit("sendMessage", { roomName: currentRoom, message });
+          addMessage(`You: ${message}`);
+          messageInput.value = "";
+        }else{
+          alert("Please join a room first")
+        }
       });
+
+      // Disconnect from the server
+      disconnectBtn.addEventListener("click", () => {
+        socket.disconnect();
+        addMessage("Disconnected from server");
+      });
+
+      // Connect to the server manually
+      connectManually.addEventListener("click", () => {
+        socket.connect();
+        addMessage("Connected to server");
+      });
+
+      // Listen for messages
+      socket.on("message", (message) => {
+        addMessage(message);
+      });
+
+      // Utility to add messages to the list
+      function addMessage(message) {
+        const li = document.createElement("li");
+        li.textContent = message;
+        messages.appendChild(li);
+      }
     </script>
   </body>
 </html>

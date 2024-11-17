@@ -17,10 +17,32 @@ app.get("/", (req, res) => {
 });
 
 io.on("connection", (socket) => {
-  console.log("a user connected");
-  socket.on("user-message", (msg, cb) => {
-    cb({ status: true });
-    io.emit("message", msg);
+  console.log(`User connected: ${socket.id}`);
+  // Join a room
+  socket.on("joinRoom", (roomName) => {
+    socket.join(roomName);
+    console.log(`${socket.id} joined room: ${roomName}`);
+    socket
+      .to(roomName)
+      .emit("message", `User ${socket.id} has joined the room.`);
+  });
+
+  // Handle messages in a room
+  socket.on("sendMessage", ({ roomName, message }) => {
+    console.log(`Message to room ${roomName}: ${message}`);
+    io.to(roomName).emit("message", `Server's response: ${message}`);
+  });
+
+  // Leave a room
+  socket.on("leaveRoom", (roomName) => {
+    socket.leave(roomName);
+    console.log(`${socket.id} left room: ${roomName}`);
+    socket.to(roomName).emit("message", `User ${socket.id} has left the room.`);
+  });
+
+  // Handle disconnection
+  socket.on("disconnect", () => {
+    console.log(`User disconnected: ${socket.id}`);
   });
 });
 
