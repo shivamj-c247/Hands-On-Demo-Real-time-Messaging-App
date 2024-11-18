@@ -10,21 +10,35 @@
   <body>
     <h1>Socket.IO Rooms Demo</h1>
     <div>
-      <input id="roomInput" type="text" placeholder="Enter room name" required />
+      <input
+        id="roomInput"
+        type="text"
+        placeholder="Enter room name"
+        required
+      />
       <button id="joinRoomBtn">Join Room</button>
       <button id="leaveRoomBtn">Leave Room</button>
       <button id="disconnect">Disconnect</button>
       <button id="connectManually">Connect Manually</button>
-
     </div>
     <div>
-      <input id="messageInput" type="text" placeholder="Enter message" required />
+      <input
+        id="messageInput"
+        type="text"
+        placeholder="Enter message"
+        required
+      />
       <button id="sendMessageBtn">Send Message</button>
     </div>
     <ul id="messages"></ul>
 
     <script>
-      const socket = io();
+      const socket = io({
+        auth: {
+          token:
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6InRlc3QgdG9rZW4iLCJpYXQiOjE1MTYyMzkwMjJ9.KQfqGmu1qUyTyocAuoXIHE5dN4W1DS9AXvCs0z1r3AE",
+        },
+      });
 
       const roomInput = document.getElementById("roomInput");
       const joinRoomBtn = document.getElementById("joinRoomBtn");
@@ -63,8 +77,8 @@
           socket.emit("sendMessage", { roomName: currentRoom, message });
           addMessage(`You: ${message}`);
           messageInput.value = "";
-        }else{
-          alert("Please join a room first")
+        } else {
+          alert("Please join a room first");
         }
       });
 

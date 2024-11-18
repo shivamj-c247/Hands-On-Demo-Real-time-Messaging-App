@@ -3,9 +3,14 @@ import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { Server } from "socket.io";
+import jwt from "jsonwebtoken";
 const app = express();
 const server = createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+  },
+});
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 app.get("/", (req, res) => {
@@ -14,26 +19,12 @@ app.get("/", (req, res) => {
 
 io.on("connection", (socket) => {
   console.log(`User connected: ${socket.id}`);
-  // Join a room
-  socket.on("joinRoom", (roomName) => {
-    socket.join(roomName);
-    console.log(`${socket.id} joined room: ${roomName}`);
-    socket
-      .to(roomName)
-      .emit("message", `User ${socket.id} has joined the room.`);
-  });
 
-  // Handle messages in a room
-  socket.on("sendMessage", ({ roomName, message }) => {
-    console.log(`Message to room ${roomName}: ${message}`);
-    io.to(roomName).emit("message", `Server's response: ${message}`);
-  });
+  socket.on("create-something", (message) => {
+    console.log(`Message received: ${message}`);
 
-  // Leave a room
-  socket.on("leaveRoom", (roomName) => {
-    socket.leave(roomName);
-    console.log(`${socket.id} left room: ${roomName}`);
-    socket.to(roomName).emit("message", `User ${socket.id} has left the room.`);
+    // Broadcast the message to all connected clients
+    socket.broadcast.emit("message", message);
   });
 
   // Handle disconnection

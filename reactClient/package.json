@@ -1,0 +1,53 @@
+{
+  "name": "vite-demo",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "check": "eslint src --ext jsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview"
+  },
+  "pre-commit": "check",
+  "dependencies": {
+    "@monaco-editor/react": "^4.6.0",
+    "@tanstack/react-query": "^5.56.2",
+    "axios": "^1.7.7",
+    "bootstrap": "^5.3.3",
+    "crypto-js": "^4.2.0",
+    "js-cookie": "^3.0.5",
+    "monaco-themes": "^0.4.4",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-error-boundary": "^4.0.13",
+    "react-hook-form": "^7.53.0",
+    "react-icons": "^5.3.0",
+    "react-router-dom": "^6.22.3",
+    "react-select": "^5.8.1",
+    "react-toastify": "^10.0.5",
+    "socket.io-client": "^4.8.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.10.0",
+    "@rollup/plugin-dynamic-import-vars": "^2.1.2",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@types/react": "^18.2.66",
+    "@types/react-dom": "^18.2.22",
+    "@vitejs/plugin-react-swc": "^3.6.0",
+    "autoprefixer": "^10.4.18",
+    "eslint": "^8.57.1",
+    "eslint-plugin-react": "^7.36.1",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.6",
+    "globals": "^15.9.0",
+    "postcss": "^8.4.35",
+    "pre-commit": "^1.2.2",
+    "prettier": "^3.2.5",
+    "prettier-plugin-tailwindcss": "^0.5.12",
+    "tailwindcss": "^3.4.1",
+    "vite": "^5.1.6",
+    "vite-plugin-dynamic-import": "^1.6.0"
+  }
+}

@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+
+*{
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 300;
+    font-size: 14px;
+  }
+  
+  .listItem:hover {
+    background: #e2e8f0;
+    cursor: pointer;
+  }
+
+  .sidebar {
+    min-height: 70vh; /* Adjust to match the CodeEditorWindow height */
+  }
+
+  .bottomClass {
+    bottom: 20px;
+  }
+
+  .fullscreen-mode {
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    background-color: white;
+    overflow: hidden;
+  }
+  
+  .fullscreen-content {
+    height: calc(100vh - 64px); /* Adjust content height to fit the screen */
+  }
+  
+  .right-container {
+    flex-shrink: 0;
+  }
+  
+  .fullscreen .right-container {
+    width: 50%; /* Expand the output window when in fullscreen */
+  }
+  
+  
+  
+  @keyframes octocat-wave {
+    0%, 100% {
+      transform:rotate(0);
+    }
+    20%, 60% { 
+      transform:rotate(-20deg);
+    
+    } 40%, 80% {
+      transform:rotate(10deg);
+    }
+  }
+
+  @media only screen and (min-width: 768px){
+    .parent:hover .child {
+        opacity:1;
+        height:auto;
+        overflow:none;
+        transform: translateY(0);
+    }
+    .child {
+        opacity:0;
+        height:0;
+        overflow:hidden;
+        transform: translateY(-10%);
+    }
+}
