@@ -2,57 +2,67 @@ import express from "express";
 import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import cluster from "node:cluster";
+import { availableParallelism } from "node:os";
 import { Server } from "socket.io";
-const app = express();
-const server = createServer(app);
-const io = new Server(server);
+import { createAdapter, setupPrimary } from "@socket.io/cluster-adapter";
+import { setupMaster, setupWorker } from "@socket.io/sticky";
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-app.get("/", (req, res) => {
-  res.sendFile(join(__dirname, "index.html"));
-});
+if (cluster.isPrimary) {
+  const numCPUs = availableParallelism();
 
-io.on("connection", (socket) => {
-  console.log(`User connected: ${socket.id}`);
-  // Join a room
-  socket.on("joinRoom", (roomName) => {
-    socket.join(roomName);
-    console.log(`${socket.id} joined room: ${roomName}`);
-    socket
-      .to(roomName)
-      .emit("message", `User ${socket.id} has joined the room.`);
+  console.log(`Primary process running. Forking ${numCPUs} workers...`);
+  const app = express();
+  const port = 3000; // Shared port for all workers
+
+  const server = createServer(app);
+  setupMaster(server, {
+    loadBalancingMethod: "least-connection", // either "random", "round-robin" or "least-connection"
+  });
+  server.listen(port, () => {
+    console.log(`Primary process listening on port ${port}`);
   });
 
-  // Handle messages in a room
-  socket.on("sendMessage", ({ roomName, message }) => {
-    console.log(`Message to room ${roomName}: ${message}`);
-    io.to(roomName).emit("message", `Server's response: ${message}`);
+  // Set up the primary cluster adapter
+  setupPrimary();
+
+  // Fork workers
+  for (let i = 0; i < numCPUs; i++) {
+    cluster.fork();
+  }
+} else {
+  // Worker processes
+  const app = express();
+
+  const server = createServer(app);
+  const io = new Server(server, {
+    connectionStateRecovery: {}, // Enables reconnection after disconnection
+    adapter: createAdapter(), // Initialize the cluster adapter in workers
+  });
+  setupWorker(io);
+  // Serve a simple HTML page
+  app.get("/", (req, res) => {
+    res.sendFile(join(__dirname, "index.html"));
   });
 
-  // Leave a room
-  socket.on("leaveRoom", (roomName) => {
-    socket.leave(roomName);
-    console.log(`${socket.id} left room: ${roomName}`);
-    socket.to(roomName).emit("message", `User ${socket.id} has left the room.`);
+  // WebSocket logic
+  io.on("connection", (socket) => {
+    console.log(`User connected to worker ${cluster.worker.id}: ${socket.id}`);
+
+    socket.on("joinRoom", (roomName) => {
+      socket.join(roomName);
+      console.log(`${socket.id} joined room: ${roomName}`);
+      socket.to(roomName).emit("message", `User ${socket.id} joined the room.`);
+    });
+
+    socket.on("sendMessage", ({ roomName, message }) => {
+      io.to(roomName).emit("message", `Server: ${message}`);
+    });
+
+    socket.on("disconnect", () => {
+      console.log(`User disconnected: ${socket.id}`);
+    });
   });
-
-  // Handle disconnection
-  socket.on("disconnect", () => {
-    console.log(`User disconnected: ${socket.id}`);
-  });
-});
-
-server.listen(3000, () => {
-  console.log("server running at http://localhost:3000");
-});
-
-// explainination
-// socket.broadcast.emit('hi');:
-// socket represents a specific client connected to the server.
-// broadcast is a property of the socket object that allows you to send a message to all clients except the one that sent the message.
-// emit() is a method that sends an event to the client.
-// In this case, socket.broadcast.emit('hi'); sends the event 'hi' to all clients except the one that sent the message.
-// io.emit('message', msg);:
-// io is an instance of the socket.io server.
-// emit() is a method that sends an event to all connected clients.
-// In this case, io.emit('message', msg); sends the event 'message' with the payload msg to all connected clients.
+}
