@@ -3,17 +3,36 @@ import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { Server } from "socket.io";
+import jwt from "jsonwebtoken";
 const app = express();
 const server = createServer(app);
 const io = new Server(server);
 const __dirname = dirname(fileURLToPath(import.meta.url));
-
+const jwtSecret = "test-token";
 app.get("/", (req, res) => {
   res.sendFile(join(__dirname, "index.html"));
 });
 
+io.use((socket, next) => {
+  try {
+    const token = socket.handshake.auth.token;
+    if (!token) {
+      return next(new Error("Authentication error"));
+    }
+    jwt.verify(token, jwtSecret, (err, decoded) => {
+      if (err) {
+        return next(new Error("invalid token"));
+      }
+      socket.user = decoded;
+      next();
+    });
+  } catch (err) {
+    next(new Error("Authentication error"));
+  }
+});
+
 io.on("connection", (socket) => {
-  console.log(`User connected: ${socket.id}`);
+  console.log(`User connected: ${socket.id} username: ${socket.user.name}`);
   // Join a room
   socket.on("joinRoom", (roomName) => {
     socket.join(roomName);
