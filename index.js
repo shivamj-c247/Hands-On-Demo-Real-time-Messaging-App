@@ -28,7 +28,17 @@ server.listen(3000, () => {
   console.log("server running at http://localhost:3000");
 });
 
-// explainination
+
+
+
+
+
+
+
+
+
+
+// explaination
 // socket.broadcast.emit('hi');:
 // socket represents a specific client connected to the server.
 // broadcast is a property of the socket object that allows you to send a message to all clients except the one that sent the message.
