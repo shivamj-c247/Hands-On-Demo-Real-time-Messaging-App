@@ -20,23 +20,13 @@ io.on("connection", (socket) => {
   console.log("a user connected");
   socket.on("user-message", (msg, cb) => {
     cb({ status: true });
-    io.emit("message", msg);
+    io.emit("message", `server: ${msg}`);
   });
 });
 
 server.listen(3000, () => {
   console.log("server running at http://localhost:3000");
 });
-
-
-
-
-
-
-
-
-
-
 
 // explaination
 // socket.broadcast.emit('hi');:
